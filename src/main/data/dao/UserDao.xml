@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="data.dao.UserDao">
+  <select id="login" resultType="entity.User">
+    select * from accounts where account_name = #{accountName} and password = #{password}
+  </select>
+  <select id="checkExist" resultType="Boolean">
+    select count(account_name) from accounts where account_name = #{accountName}
+  </select>
+  <insert id="register">
+    insert into accounts (user_id,user_name,account_name,password,register_time) values (#{userId},#{userName},#{accountName},#{password},now())
+  </insert>
+  <select id="getRecords" resultType="entity.Record">
+    select * from records where user_id = #{userId} order by end_time desc limit #{preNumber}, #{pageSize}
+  </select>
+  <select id="getNumber" resultType="int">
+    select count(*) from records where user_id = #{userId}
+  </select>
+  <insert id="insertRecord">
+    insert into records (start_time,end_time,period_time,number,user_id) values (#{startTime},#{endTime},#{periodTime},#{number},#{userId})
+  </insert>
+  <select id="getDayRecordNumber" resultType="int">
+    select coalesce(sum(number),0) from records where user_id = #{userId} and to_days(end_time) = to_days(now());
+  </select>
+  <select id="getSevenDaysRecordNumber" resultType="int">
+    select coalesce(sum(number),0) from records where user_id = #{userId} and date_sub(curdate(), interval 7 day) &lt; date(end_time);
+  </select>
+  <select id="getThirtyDaysRecordNumber" resultType="int">
+    select coalesce(sum(number),0) from records where user_id = #{userId} and date_sub(curdate(), interval 30 day) &lt; date(end_time);
+  </select>
+  <select id="getTotalRecordNumber" resultType="int">
+    select coalesce(sum(number),0) from records where user_id = #{userId};
+  </select>
+
+  <select id="getTotalDays" resultType="int">
+    select coalesce(count(date),0) from (select convert (end_time,date) as date from records where user_id = #{userId} group by date) as dates;
+  </select>
+</mapper>
